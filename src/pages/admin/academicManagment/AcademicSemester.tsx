@@ -1,8 +1,8 @@
 import { useGetAllSemesterQuery } from "../../../redux/features/academicSemester/academicSemesterApi";
 
 const AcademicSemester = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { data } = useGetAllSemesterQuery(undefined)
-    console.log(data);
     return (
         <div>
             <h1>Academic Semester route</h1>
