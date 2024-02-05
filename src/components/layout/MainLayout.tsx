@@ -7,16 +7,18 @@ import { useAppDispatch } from "../../redux/hooks";
 import { logout } from "../../redux/features/auth/authSlice";
 
 const MainLayout = () => {
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
   const handleLogout = () => {
-    dispatch(logout())
-  }
+    dispatch(logout());
+  };
   return (
     <div>
-      <Layout style={{ height: "100vh" }}>
+      <Layout>
         <Sidebar></Sidebar>
         <Layout>
-          <Header ><Button onClick={handleLogout}>Logout</Button></Header>
+          <Header>
+            <Button onClick={handleLogout}>Logout</Button>
+          </Header>
           <Content style={{ margin: "24px 16px 0" }}>
             <div
               style={{
@@ -27,7 +29,6 @@ const MainLayout = () => {
               <Outlet></Outlet>
             </div>
           </Content>
-  
         </Layout>
       </Layout>
     </div>
