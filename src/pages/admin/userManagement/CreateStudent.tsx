@@ -1,13 +1,17 @@
-import { FieldValues, SubmitHandler } from "react-hook-form";
+import { Controller, FieldValues, SubmitHandler } from "react-hook-form";
 import PHForm from "../../../components/form/PHForm";
 import PHInput from "../../../components/form/PHInput";
-import { Button, Col, Divider, Row } from "antd";
+import { Button, Col, Divider, Form, Input, Row } from "antd";
 import PHSelect from "../../../components/form/PHSelect";
 import { bloodGroupOptions, genderOptions } from "../../../constants/global";
 import PHDatePicker from "../../../components/form/PHDatePicker";
+import {
+  useGetAcademicDepartmentQuery,
+  useGetAllSemesterQuery,
+} from "../../../redux/features/admin/academicManagementApi";
+import { useAddStudentMutation } from "../../../redux/features/admin/userManagementApi";
 
 const studentDefaultData = {
- 
   name: {
     firstName: "John",
     middleName: "Doe",
@@ -17,7 +21,7 @@ const studentDefaultData = {
   dateOfBirth: "1990-01-01",
   bloogGroup: "A+",
 
-  email: "john.doe@example.com",
+  email: "john.doe1010@example.com",
   contactNo: "123-456-7890",
   emergencyContactNo: "987-654-3210",
   presentAddress: "123 Main St, City",
@@ -40,17 +44,39 @@ const studentDefaultData = {
   },
 
   profileImg: "image_url_here",
-  admissionSemester: "admission_semester_id_here",
-  academicDepartment: "academic_department_id_here",
+  admissionSemester: "Autumn 2024 Default",
+  // academicDepartment: "academic_department_id_here",
 };
 
 const CreateStudent = () => {
+  const { data: sData, isLoading: sIsLoading } =
+    useGetAllSemesterQuery(undefined);
+  const { data: dData, isLoading: dIsLoading } = useGetAcademicDepartmentQuery(
+    undefined
+    // { skip: sIsLoading }
+  );
+  const [addStudent, { data, error }] = useAddStudentMutation();
+  const semesterOptions = sData?.data?.map((item) => ({
+    value: item._id,
+    label: `${item.name} ${item.year}`,
+  }));
+  const departmentOptions = dData?.data?.map((item) => ({
+    value: item._id,
+    label: `${item.name}`,
+  }));
+  console.log(data, "data", error, "error");
   const onSubmit: SubmitHandler<FieldValues> = (data) => {
+    const studentData = {
+      password: "student123",
+      student: data,
+    };
     console.log(data);
-    // const formData = new FormData();
-    // formData.append("data", JSON.stringify(data));
+    const formData = new FormData();
+    formData.append("data", JSON.stringify(studentData));
+    formData.append("file",data.image)
     //! This is for development mode checking the data from  the form data constructor
-    // console.log(Object.fromEntries(formData));
+    console.log(Object.fromEntries(formData));
+    addStudent(formData);
   };
   return (
     <Row>
@@ -79,6 +105,21 @@ const CreateStudent = () => {
                 label="Blood Group"
                 options={bloodGroupOptions}
               />
+            </Col>
+            <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
+              <Controller
+                name="image"
+                render={({ field: { onChange,value, ...field } }) => (
+                  <Form.Item label="Picture">
+                    <Input
+                      type="file"
+                    value={value?.fileName}
+                      {...field}
+                      onChange={(e) => onChange(e.target.files?.[0])}
+                    />
+                  </Form.Item>
+                )}
+              ></Controller>
             </Col>
           </Row>
           <Divider>Contact Info.</Divider>
@@ -190,6 +231,25 @@ const CreateStudent = () => {
                 type="text"
                 name="permanentAddress"
                 label="Permanent Address"
+              />
+            </Col>
+          </Row>
+          <Divider>Admission Info.</Divider>
+          <Row gutter={8}>
+            <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
+              <PHSelect
+                options={semesterOptions}
+                disabled={sIsLoading}
+                name="admissionSemester"
+                label="Admission Semester"
+              />
+            </Col>
+            <Col span={24} md={{ span: 12 }} lg={{ span: 8 }}>
+              <PHSelect
+                options={departmentOptions}
+                disabled={dIsLoading}
+                name="academicDepartment"
+                label="Academic Department"
               />
             </Col>
           </Row>
