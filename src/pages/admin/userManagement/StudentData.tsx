@@ -1,69 +1,45 @@
-import { Button, Table, TableColumnsType, TableProps } from "antd";
-import { useGetAllSemesterQuery } from "../../../redux/features/admin/academicManagementApi";
-import { TAcademicSemester } from "../../../types/academicManagement.type";
+import { Button, Space, Table, TableColumnsType, TableProps } from "antd";
 import { useState } from "react";
 import { TQueryParam } from "../../../types/global";
+import { TStudent } from "../../../types";
+import { useGetAllStudentsQuery } from "../../../redux/features/admin/userManagementApi";
 
-type TTableData = Pick<
-  TAcademicSemester,
-  "name" | "year" | "startMonth" | "endMonth"
->;
+type TTableData = Pick<TStudent, "name" | "id">;
 
 const StudentData = () => {
   const [params, setParams] = useState<TQueryParam[] | undefined>(undefined);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {
-    data: semesterData,
+    data: studentData,
     isLoading,
     isFetching,
-  } = useGetAllSemesterQuery(params);
-  const tableData = semesterData?.data?.map(
-    ({ _id, name, year, startMonth, endMonth }) => ({
-      key: _id,
-      name,
-      year,
-      startMonth,
-      endMonth,
-    })
-  );
-
+  } = useGetAllStudentsQuery(params);
+  const tableData = studentData?.data?.map(({ _id, fullName, id }) => ({
+    key: _id,
+    fullName,
+    id,
+  }));
+console.log(studentData,'studentData');
   const columns: TableColumnsType<TTableData> = [
     {
       title: "Name",
-      dataIndex: "name",
-      filters: [
-        {
-          text: "Autumn",
-          value: "Autumn",
-        },
-        {
-          text: "Fall",
-          value: "Fall",
-        },
-        {
-          text: "Summer",
-          value: "Summer",
-        },
-      ],
+      dataIndex: "fullName",
     },
+
     {
-      title: "Year",
-      dataIndex: "year",
-      defaultSortOrder: "descend",
-    },
-    {
-      title: "Start Month",
-      dataIndex: "startMonth",
-      defaultSortOrder: "descend",
-    },
-    {
-      title: "End Month",
-      dataIndex: "endMonth",
-      defaultSortOrder: "descend",
+      title: "Roll No.",
+      dataIndex: "id",
     },
     {
       title: "Action",
-      render: () => <div><Button>Update</Button></div>,
+      render: () => (
+        <Space>
+          <Button>Details</Button>
+          <Button>Update</Button>
+          <Button>Block</Button>
+        </Space>
+        ),
+      width:"1%"
     },
   ];
 
