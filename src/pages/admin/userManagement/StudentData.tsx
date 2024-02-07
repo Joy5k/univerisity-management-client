@@ -1,25 +1,86 @@
-import { Button, Space, Table, TableColumnsType, TableProps } from "antd";
+import {
+  Button,
+  Modal,
+  Pagination,
+  Space,
+  Table,
+  TableColumnsType,
+  TableProps,
+} from "antd";
 import { useState } from "react";
 import { TQueryParam } from "../../../types/global";
 import { TStudent } from "../../../types";
-import { useGetAllStudentsQuery } from "../../../redux/features/admin/userManagementApi";
+import {
+  useGetAllStudentsQuery,
+  useUpdateStudentStatusMutation,
+} from "../../../redux/features/admin/userManagementApi";
+import { Link } from "react-router-dom";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
-type TTableData = Pick<TStudent, "name" | "id">;
+type TTableData = Pick<TStudent, "fullName" | "id" | "email" | "contactNo">;
 
 const StudentData = () => {
-  const [params, setParams] = useState<TQueryParam[] | undefined>(undefined);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [params, setParams] = useState<TQueryParam[]>([]);
+  const [page, setPage] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [studentStatus, setStudentStatus] = useState("in-progress");
+  const [studentId, setStudentId] = useState("");
+  const [updateStudentStatus] = useUpdateStudentStatusMutation(undefined);
+
   const {
     data: studentData,
     isLoading,
     isFetching,
-  } = useGetAllStudentsQuery(params);
-  const tableData = studentData?.data?.map(({ _id, fullName, id }) => ({
-    key: _id,
-    fullName,
-    id,
-  }));
-console.log(studentData,'studentData');
+  } = useGetAllStudentsQuery([
+    { name: "limit", value: 10 },
+    { name: "page", value: page },
+    { name: "sort", value: "id" },
+    ...params,
+  ]);
+  const metaData = studentData?.meta;
+  const tableData = studentData?.data?.map(
+    ({ _id, fullName, id, email, contactNo, user }) => ({
+      key: _id,
+      fullName,
+      id,
+      email,
+      contactNo,
+      user,
+    })
+  );
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = async () => {
+  
+
+    if (studentStatus === "in-progress") {
+      const blockStudent = {
+        id: studentId,
+        data: { status: "blocked" },
+      };
+      const res = await updateStudentStatus(blockStudent);
+      console.log(res, "blocked response");
+    }
+    if (studentStatus === "blocked") {
+      setStudentStatus("in-progress");
+      const unBlockStudent = {
+        id: studentId,
+        data: { status: "in-progress" },
+      };
+
+      const res = await updateStudentStatus(unBlockStudent);
+      console.log(res, "unblocked response");
+    }
+    setIsModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+
   const columns: TableColumnsType<TTableData> = [
     {
       title: "Name",
@@ -31,15 +92,36 @@ console.log(studentData,'studentData');
       dataIndex: "id",
     },
     {
+      title: "Email",
+      dataIndex: "email",
+    },
+    {
+      title: "Contact No.",
+      dataIndex: "contactNo",
+    },
+    {
       title: "Action",
-      render: () => (
+      render: (item) => (
         <Space>
-          <Button>Details</Button>
+          <Link to={`/admin/student-data/${item.key}`}>
+            <Button>Details</Button>
+          </Link>
           <Button>Update</Button>
-          <Button>Block</Button>
+
+          <Button
+            style={{ backgroundColor: "#FFA732", color: "white" }}
+            type="default"
+            onClick={() => {
+              showModal();
+              setStudentId(item.user._id);
+              setStudentStatus(item.user.status)
+            }}
+          >
+            {item.user.status === "blocked" ? "un-block" : "Block"}
+          </Button>
         </Space>
-        ),
-      width:"1%"
+      ),
+      width: "1%",
     },
   ];
 
@@ -62,12 +144,31 @@ console.log(studentData,'studentData');
   }
 
   return (
-    <Table
-      loading={isFetching}
-      columns={columns}
-      dataSource={tableData}
-      onChange={onChange}
-    />
+    <>
+      <Modal
+        title="Basic Modal"
+        open={isModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <p>Some contents...</p>
+        <p>Some contents...</p>
+        <p>Some contents...</p>
+      </Modal>
+      <Table
+        loading={isFetching}
+        columns={columns}
+        dataSource={tableData}
+        onChange={onChange}
+        pagination={false}
+      />
+      <Pagination
+        current={page}
+        onChange={(value) => setPage(value)}
+        pageSize={metaData?.limit}
+        total={metaData?.total}
+      ></Pagination>
+    </>
   );
 };
 
