@@ -31,12 +31,10 @@ const RegisteredSemesters = () => {
 
   const [updateSemesterStatus] = useUpdateRegisteredSemesterMutation();
 
-  console.log(semesterId);
-
   const tableData = semesterData?.data?.map(
     ({ _id, academicSemester, startDate, endDate, status }) => ({
       key: _id,
-      name: `${academicSemester.name} ${academicSemester.year}`,
+      name: `${academicSemester?.name} ${academicSemester?.year}`,
       startDate: moment(new Date(startDate)).format('MMMM'),
       endDate: moment(new Date(endDate)).format('MMMM'),
       status,

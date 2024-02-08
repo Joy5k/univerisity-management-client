@@ -26,6 +26,29 @@ const userManagementApi = baseApi.injectEndpoints({
         };
       },
     }),
+    getAllFaculties: builder.query({
+      query: (args) => {
+        const params = new URLSearchParams();
+        console.log(args);
+        if (args) {
+          args.forEach((item: { name: string; value: string }) => {
+            params.append(item.name, item.value);
+          });
+        }
+        return {
+          url: "/faculties",
+          method: "GET",
+          params: params,
+        };
+      },
+      transformResponse: (response: TResponseRedux<TStudent[]>) => {
+        console.log(response, "student response");
+        return {
+          data: response.data,
+          meta: response.meta,
+        };
+      },
+    }),
     addStudent: builder.mutation({
       query: (data) => ({
         url: "/users/create-student",
@@ -40,11 +63,15 @@ const userManagementApi = baseApi.injectEndpoints({
           url: `/users/change-status/${data.id}`,
           method: "POST",
           body: data.data,
-        }
+        };
       },
     }),
   }),
 });
 
-export const { useAddStudentMutation, useGetAllStudentsQuery ,useUpdateStudentStatusMutation} =
-  userManagementApi;
+export const {
+  useAddStudentMutation,
+  useGetAllStudentsQuery,
+  useUpdateStudentStatusMutation,
+  useGetAllFacultiesQuery
+} = userManagementApi;
